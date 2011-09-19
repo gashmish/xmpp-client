@@ -64,18 +64,20 @@ var Xmpp = {
                         'taps': taps
                     }); 
                 }
-                else if ($(message).find('invite')) {
+                else if ($(message).find('invite').length > 0) {
                     console.log('invite');
                     $(document).trigger('invitation_recieved', {
                         'jid': jid
                     }); 
                 }
-                else if ($(message).find('revoke_invitation')) {
+                else if ($(message).find('revoke_invitation').length > 0) {
                     console.log('revoke_invitation');
                     $(document).trigger('invitation_revoked', {
                         'jid': jid
                     }); 
                 }
+
+               return true;
             },
             null, 'message');
 
@@ -96,6 +98,8 @@ var Xmpp = {
                         'jid': jid
                      });
                 }
+
+                return true;
             },
             null, 'presence');
     },
