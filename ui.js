@@ -69,6 +69,10 @@ UI = {
         $('#quit_chat_button').click(function () {
             $(document).trigger("quit_chat_action");
         });
+
+        $('#tap_button').click(function () {
+            $(document).trigger("taptap_action");
+        });
     },
 
     st_login: function(data) {

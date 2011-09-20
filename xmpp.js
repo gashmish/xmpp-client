@@ -49,8 +49,6 @@ var Xmpp = {
                 var full_jid = $(message).attr('from');
                 var jid = Strophe.getBareJidFromJid(full_jid);
 
-                console.log(message);
-
                 if ($(message).find('taps').length > 0) {
                     var taps = [];
                     $(message).find('taps > tap').each(function() {
@@ -65,19 +63,22 @@ var Xmpp = {
                     }); 
                 }
                 else if ($(message).find('invite').length > 0) {
-                    console.log('invite');
                     $(document).trigger('invitation_recieved', {
                         'jid': jid
                     }); 
                 }
                 else if ($(message).find('revoke_invitation').length > 0) {
-                    console.log('revoke_invitation');
                     $(document).trigger('invitation_revoked', {
                         'jid': jid
                     }); 
                 }
+                else if ($(message).find('quit_chat').length > 0) {
+                    $(document).trigger('chat_ended', {
+                        'jid': jid
+                    }); 
+                }
 
-               return true;
+                return true;
             },
             null, 'message');
 
@@ -103,6 +104,49 @@ var Xmpp = {
             },
             null, 'presence');
     },
+    
+    handle_chat_request: function (check_jid_cb) {
+        Xmpp.connection.addHandler(
+            function (iq) {
+                console.log('Chat request handler: ', iq);
+
+                var from = $(iq).attr('from');
+                var type = check_jid_cb(from) ? 'result' : 'error'
+                
+                var iq = $iq({
+                    to: from,
+                    type: type, 
+                    id: $(iq).attr('id')
+                });
+                
+                Xmpp.connection.sendIQ(iq);
+                
+                if (type == 'error') {
+                    return true; // wait for another chat request
+                }
+                return false; // connection established, clear handle 
+            },
+            null, 'iq', 'set');
+    },
+    
+    start_chat: function(data, cb) {
+        var iq = $iq({
+            to: data.jid,
+            from: Xmpp.connection.jid,
+            type: 'set',
+            id: 1 
+        }).c('chat');
+        //, { xmlns: 'taptap:start_chat' });
+
+        Xmpp.connection.send(iq, function (iq) {
+            console.log('chat resp cb');
+            if ($(iq).attr('type') == 'result') {
+                cb(); // success
+            } else {
+                cb('error');
+            }
+        });
+    },
 
     send_taps: function (data) {
         var message = $msg({ 'to': data.jid }).c('taps');
@@ -126,6 +170,12 @@ var Xmpp = {
         Xmpp.connection.send(
             $msg({ 'to': data.jid })
                 .c('revoke_invitation'));
+    },
+
+    send_quit_chat: function (data) {
+        Xmpp.connection.send(
+            $msg({ 'to': data.jid })
+                .c('quit_chat'));
     },
 
     send_presence: function() {
