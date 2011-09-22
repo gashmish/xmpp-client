@@ -48,6 +48,18 @@ Roster = {
     }
 };
 
+Chat = {
+    add_recieved_signal: function () {
+        var label = $('#recieved_label');
+        var count = parseInt(label.text());
+        label.text(count + 1);
+    },
+
+    clear_recieved_signal: function () {
+        $('#recieved_label').text(0);
+    }
+},
+
 UI = {
     init: function () {
         $('#login_button').click(function () {
@@ -66,12 +78,13 @@ UI = {
             $(document).trigger("login_action", creds);
         });
 
-        $('#quit_chat_button').click(function () {
-            $(document).trigger("quit_chat_action");
-        });
-
         $('#tap_button').click(function () {
             $(document).trigger("taptap_action");
+        });
+        
+        $('#quit_chat_button').click(function () {
+            Chat.clear_recieved_signal();
+            $(document).trigger("quit_chat_action");
         });
     },
 
@@ -93,6 +106,7 @@ UI = {
     },
 
     st_chat: function (data) {
+        Chat.clear_recieved_signal();
         $.mobile.changePage($('#chat_page'));
     }
 };

@@ -43,6 +43,12 @@ handle('friends_recieved', function (ev, data) {
     Xmpp.send_presence();
 });
 
+function start_chat(jid) {
+    Roster.set_item_status(jid, 'none');
+    UI.st_chat();
+    chatmate = jid;
+}
+
 handle("roster_item_action", function(ev, data) {
     //console.log(ev.type, data);
     var status = Roster.get_item_status(data.jid);
@@ -57,9 +63,11 @@ handle("roster_item_action", function(ev, data) {
     }
     else if (status == 'inviting') {
         Xmpp.send_invite({ 'jid': data.jid });
-        Roster.set_item_status(data.jid, 'none');
-        UI.st_chat();
-        chatmate = data.jid;
+       
+        start_chat(data.jid); 
+        //Roster.set_item_status(data.jid, 'none');
+        //UI.st_chat();
+        //chatmate = data.jid;
 
         /*
         Xmpp.send_invite({ 'jid': data.jid });
@@ -84,9 +92,10 @@ handle('invitation_recieved', function (ev, data) {
     console.log(ev.type, data);
     if (Roster.get_item_status(data.jid) == 'invited') {
         
-        Roster.set_item_status(data.jid, 'none');
-        UI.st_chat();
-        chatmate = data.jid;
+        start_chat(data.jid);
+        //Roster.set_item_status(data.jid, 'none');
+        //UI.st_chat();
+        //chatmate = data.jid;
         
         /*
         Roster.set_item_status(data.jid, 'connecting');
@@ -121,10 +130,14 @@ handle('friend_offline', function (ev, data) {
 
 handle('taps_recieved', function (ev, data) {
     console.log(ev.type, data);
+    Chat.add_recieved_signal();
 });
 
 handle("taptap_action", function(ev, data) {
-    Xmpp.send_taps(data);
+    Xmpp.send_taps({
+        jid: chatmate,
+        taps: [{ 'timestamp': 0, 'value': 0 }]
+    });
 });
 
 handle("quit_chat_action", function () {

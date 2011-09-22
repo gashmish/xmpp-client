@@ -50,6 +50,7 @@ var Xmpp = {
                 var jid = Strophe.getBareJidFromJid(full_jid);
 
                 if ($(message).find('taps').length > 0) {
+                    console.log(message);
                     var taps = [];
                     $(message).find('taps > tap').each(function() {
                         taps.push({
